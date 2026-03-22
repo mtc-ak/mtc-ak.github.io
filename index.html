@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>마이크로바이옴 기반 대장암 예측 | Microbiome-Based CRC Prediction</title>
+  <meta name="description" content="마이크로바이옴 기반 대장암 예측을 위한 머신러닝 모델의 통계적 비교 및 외부 검증 연구">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:   #1a3a5c;
+      --accent:    #2e6da4;
+      --accent2:   #e8534a;
+      --bg:        #fafafa;
+      --surface:   #ffffff;
+      --border:    #d8dee4;
+      --text:      #24292f;
+      --muted:     #57606a;
+      --code-bg:   #f6f8fa;
+      --radius:    6px;
+      --shadow:    0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.04);
+      --max-w:     860px;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Noto Serif KR', Georgia, serif; background: var(--bg); color: var(--text); line-height: 1.8; font-size: 16px; }
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(26,58,92,.97); backdrop-filter: blur(8px); padding: 0 2rem; display: flex; align-items: center; gap: 0; }
+    .nav-brand { color: #fff; font-family: 'Noto Sans KR', sans-serif; font-weight: 700; font-size: .9rem; padding: 1rem 1.5rem 1rem 0; border-right: 1px solid rgba(255,255,255,.2); margin-right: 1rem; white-space: nowrap; }
+    nav a { color: rgba(255,255,255,.8); text-decoration: none; font-family: 'Noto Sans KR', sans-serif; font-size: .82rem; padding: 1rem .75rem; display: inline-block; transition: color .2s; }
+    nav a:hover { color: #fff; }
+    .hero { background: linear-gradient(135deg, #0f2744 0%, #1a3a5c 50%, #1e4d7a 100%); color: #fff; padding: 5rem 2rem 4rem; text-align: center; }
+    .hero-badge { display: inline-block; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); color: rgba(255,255,255,.9); font-family: 'Noto Sans KR', sans-serif; font-size: .75rem; font-weight: 500; letter-spacing: .06em; padding: .35rem 1rem; border-radius: 2rem; margin-bottom: 1.5rem; }
+    .hero h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 700; line-height: 1.4; max-width: 820px; margin: 0 auto 1rem; }
+    .hero-en { font-family: 'Noto Sans KR', Georgia, sans-serif; font-size: clamp(.9rem, 2vw, 1.1rem); color: rgba(255,255,255,.7); font-weight: 300; max-width: 780px; margin: 0 auto 2rem; font-style: italic; }
+    .hero-meta { font-family: 'Noto Sans KR', sans-serif; font-size: .85rem; color: rgba(255,255,255,.65); display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; justify-content: center; margin-bottom: 2.5rem; }
+    .hero-meta span::before { content: "▸ "; color: rgba(255,255,255,.4); }
+    .btn-group { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .6rem 1.4rem; border-radius: var(--radius); font-family: 'Noto Sans KR', sans-serif; font-size: .85rem; font-weight: 500; text-decoration: none; cursor: pointer; transition: all .2s; border: none; }
+    .btn-primary { background: #fff; color: var(--primary); }
+    .btn-primary:hover { background: #e8f0ff; transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.5); }
+    .btn-outline:hover { background: rgba(255,255,255,.1); }
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 1.5rem; }
+    section { padding: 4rem 0; }
+    section + section { border-top: 1px solid var(--border); }
+    h2 { font-size: 1.55rem; font-weight: 700; color: var(--primary); margin-bottom: 1.5rem; padding-bottom: .6rem; border-bottom: 2px solid var(--accent); display: inline-block; }
+    h3 { font-size: 1.1rem; font-weight: 600; color: var(--primary); margin: 2rem 0 .75rem; }
+    p { margin-bottom: 1rem; color: var(--text); }
+    .muted { color: var(--muted); font-size: .9rem; }
+    .abstract-box { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: var(--radius); padding: 1.75rem 2rem; box-shadow: var(--shadow); }
+    .abstract-box strong { display: block; font-family: 'Noto Sans KR', sans-serif; font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin-bottom: .75rem; }
+    .abstract-box p { margin-bottom: 0; font-size: .95rem; }
+    .keywords { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
+    .kw { background: #eaf2fb; color: var(--accent); font-family: 'Noto Sans KR', sans-serif; font-size: .78rem; font-weight: 500; padding: .25rem .75rem; border-radius: 2rem; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1rem; text-align: center; box-shadow: var(--shadow); }
+    .card .val { font-size: 1.9rem; font-weight: 700; color: var(--accent); font-family: 'Noto Sans KR', sans-serif; line-height: 1; }
+    .card .val.danger { color: var(--accent2); }
+    .card .label { font-family: 'Noto Sans KR', sans-serif; font-size: .78rem; color: var(--muted); margin-top: .4rem; }
+    .card .sub { font-size: .72rem; color: var(--muted); margin-top: .2rem; }
+    .table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+    table { width: 100%; border-collapse: collapse; font-family: 'Noto Sans KR', sans-serif; font-size: .85rem; }
+    thead th { background: var(--primary); color: #fff; padding: .7rem 1rem; text-align: center; font-weight: 600; white-space: nowrap; }
+    tbody tr:nth-child(even) { background: #f4f8fb; }
+    tbody tr:hover { background: #e8f0ff; }
+    tbody td { padding: .65rem 1rem; text-align: center; border-bottom: 1px solid var(--border); }
+    tbody td:first-child { text-align: left; font-weight: 600; }
+    .best { font-weight: 700; color: var(--accent); }
+    .warn { color: var(--accent2); font-weight: 600; }
+    .table-caption { font-family: 'Noto Sans KR', sans-serif; font-size: .82rem; color: var(--muted); margin-top: .5rem; text-align: center; }
+    .figure-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap: 1.5rem; margin: 2rem 0; }
+    .figure-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    .figure-item img { width: 100%; height: 220px; object-fit: contain; padding: .5rem; background: #fff; }
+    .figure-caption { padding: .75rem 1rem; border-top: 1px solid var(--border); font-family: 'Noto Sans KR', sans-serif; font-size: .8rem; color: var(--muted); }
+    .figure-caption strong { color: var(--text); display: block; margin-bottom: .2rem; }
+    .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1rem; margin: 1.5rem 0; }
+    .stat-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); }
+    .stat-item .test { font-family: 'Noto Sans KR'; font-weight: 700; font-size: .9rem; color: var(--primary); }
+    .stat-item .comparison { font-size: .8rem; color: var(--muted); margin: .2rem 0; font-family: 'Noto Sans KR'; }
+    .stat-item .pval { font-family: 'Source Code Pro', monospace; font-size: 1rem; color: var(--accent2); font-weight: 600; }
+    .sig { color: var(--accent2) !important; } .ns { color: var(--muted) !important; }
+    .pipeline { display: flex; flex-wrap: wrap; gap: 0; margin: 2rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .step { flex: 1; min-width: 140px; padding: 1rem; text-align: center; border-right: 1px solid var(--border); background: var(--surface); }
+    .step:last-child { border-right: none; } .step:hover { background: #eaf2fb; }
+    .step-num { font-family: 'Noto Sans KR'; font-size: 1.4rem; font-weight: 700; color: var(--accent); line-height: 1; }
+    .step-title { font-family: 'Noto Sans KR'; font-size: .8rem; font-weight: 600; color: var(--primary); margin: .3rem 0; }
+    .step-desc { font-family: 'Noto Sans KR'; font-size: .72rem; color: var(--muted); }
+    .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1rem; margin-top: 1.5rem; }
+    .dl-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; display: flex; align-items: center; gap: .75rem; text-decoration: none; color: var(--text); box-shadow: var(--shadow); transition: all .2s; }
+    .dl-item:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+    .dl-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .dl-info .name { font-family: 'Noto Sans KR'; font-weight: 600; font-size: .88rem; }
+    .dl-info .type { font-family: 'Noto Sans KR'; font-size: .76rem; color: var(--muted); }
+    .insight { background: #fff8e1; border: 1px solid #ffe082; border-left: 4px solid #f9a825; border-radius: var(--radius); padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+    .insight strong { color: #b45309; font-family: 'Noto Sans KR'; }
+    .note { background: #e8f5e9; border: 1px solid #a5d6a7; border-left: 4px solid #43a047; border-radius: var(--radius); padding: 1.25rem 1.5rem; margin: 1.5rem 0; }
+    .note strong { color: #2e7d32; font-family: 'Noto Sans KR'; }
+    footer { background: var(--primary); color: rgba(255,255,255,.7); padding: 3rem 2rem; text-align: center; font-family: 'Noto Sans KR', sans-serif; font-size: .85rem; }
+    footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+    footer a:hover { color: #fff; }
+    .footer-links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+    .code-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 0; }
+    .code-tab { padding: .6rem 1.2rem; cursor: pointer; font-family: 'Noto Sans KR', sans-serif; font-size: .85rem; font-weight: 500; border: none; background: none; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .2s; }
+    .code-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .code-panel { display: none; } .code-panel.active { display: block; }
+    pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; overflow-x: auto; font-family: 'Source Code Pro', monospace; font-size: .82rem; line-height: 1.65; margin: 0; }
+    .hl-comment { color: #6a737d; } .hl-keyword { color: #d73a49; font-weight: 600; } .hl-string { color: #032f62; } .hl-fn { color: #6f42c1; } .hl-num { color: #005cc5; }
+    @media (max-width: 600px) { nav { padding: 0 1rem; } .nav-brand { display: none; } .hero { padding: 3rem 1rem 2.5rem; } .cards { grid-template-columns: repeat(2, 1fr); } }
+    .fade-in { opacity: 0; transform: translateY(20px); transition: opacity .5s, transform .5s; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">CRC Microbiome ML</div>
+  <a href="#abstract">초록</a>
+  <a href="#methods">방법론</a>
+  <a href="#results">결과</a>
+  <a href="#figures">그림</a>
+  <a href="#stats">통계</a>
+  <a href="#download">자료</a>
+</nav>
+<header class="hero">
+  <div class="hero-badge">Research Article · 2026</div>
+  <h1>마이크로바이옴 기반 대장암 예측을 위한 머신러닝 모델의 통계적 비교 및 외부 검증 연구</h1>
+  <p class="hero-en">Statistical Comparison and External Validation of Machine Learning Models for Microbiome-Based Colorectal Cancer Prediction</p>
+  <div class="hero-meta">
+    <span>Shotgun Metagenomics</span><span>Machine Learning</span><span>Colorectal Cancer</span>
+    <span>External Validation</span><span>n = 290 (Dev) + 212 (Ext)</span>
+  </div>
+  <div class="btn-group">
+    <a href="dashboard/results_dashboard.html" class="btn btn-primary">📊 결과 대시보드</a>
+    <a href="results/final_results.json" class="btn btn-outline" download>📁 결과 데이터 (JSON)</a>
+  </div>
+</header>
+<section id="abstract"><div class="container fade-in">
+  <h2>초록 (Abstract)</h2>
+  <div class="abstract-box"><strong>Abstract</strong>
+    <p>장내 마이크로바이옴은 대장암(CRC) 발병과 깊이 연관되어 있으며, 비침습적 진단 바이오마커로서의 가능성이 주목받고 있다. 본 연구는 공개 샷건 메타게노믹스 데이터(ZellerG_2014: 개발 코호트 n=290; YachidaS_2019: 외부 검증 코호트 n=212)를 활용하여 로지스틱 회귀(LR), 랜덤 포레스트(RF), XGBoost(XGB) 세 가지 머신러닝 모델을 비교 분석하였다.</p>
+    <p>조성 데이터의 특성에 맞는 CLR 변환과 Rarefaction(depth=10,000), 유병률 필터링(≥5%)으로 전처리하였으며, 부트스트랩 신뢰구간(2,000회), DeLong 검정, McNemar 검정을 통해 통계적으로 엄밀하게 모델을 비교하였다.</p>
+    <p style="margin-bottom:0">개발 코호트에서 XGB가 AUC 0.998로 최고 성능을 보였으나, 외부 검증에서 LR의 Recall이 0.020으로 극단적으로 저하되는 임계값 일반화 실패 현상이 관찰되었다. DeLong 검정에서 유의하지 않던 XGB-LR 비교(p=0.811)가 McNemar 검정에서는 고도로 유의(p&lt;0.001)하게 나타나 AUC 단독 평가의 한계를 실증하였다.</p>
+  </div>
+  <div class="keywords">
+    <span class="kw">대장암 (CRC)</span><span class="kw">장내 마이크로바이옴</span><span class="kw">샷건 메타게노믹스</span>
+    <span class="kw">머신러닝</span><span class="kw">XGBoost</span><span class="kw">외부 검증</span><span class="kw">CLR 변환</span>
+  </div>
+</div></section>
+<section id="methods"><div class="container fade-in">
+  <h2>데이터 및 방법론</h2>
+  <h3>분석 파이프라인</h3>
+  <div class="pipeline">
+    <div class="step"><div class="step-num">1</div><div class="step-title">데이터 로드</div><div class="step-desc">curatedMetagenomicData</div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-title">Rarefaction</div><div class="step-desc">depth = 10,000</div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-title">Prevalence Filter</div><div class="step-desc">≥ 5%</div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-title">CLR 변환</div><div class="step-desc">pseudocount = 1</div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-title">모델 학습</div><div class="step-desc">LR / RF / XGB</div></div>
+    <div class="step"><div class="step-num">6</div><div class="step-title">평가 & 검정</div><div class="step-desc">DeLong, McNemar</div></div>
+  </div>
+</div></section>
+<section id="results"><div class="container fade-in">
+  <h2>결과 (Results)</h2>
+  <div class="cards">
+    <div class="card"><div class="val">0.998</div><div class="label">XGB 개발 AUC</div><div class="sub">95% CI: 0.991–1.000</div></div>
+    <div class="card"><div class="val">0.870</div><div class="label">XGB 외부 AUC</div><div class="sub">95% CI: 0.820–0.912</div></div>
+    <div class="card"><div class="val danger">0.020</div><div class="label">LR 외부 Recall</div><div class="sub">임계값 일반화 실패</div></div>
+    <div class="card"><div class="val">&lt;0.001</div><div class="label">McNemar p (XGB vs LR)</div><div class="sub">외부 코호트</div></div>
+  </div>
+  <div class="insight"><strong>⚠ 핵심 발견: 임계값 일반화 실패</strong><p style="margin-top:.5rem;margin-bottom:0">LR 모델은 개발 코호트 최적 임계값 0.986을 외부 코호트에 적용 시 Recall=0.020의 극단적 저하를 보였다. AUC 단독 평가가 분류기의 실제 임상 성능을 과대평가할 수 있음을 시사한다.</p></div>
+  <div class="note"><strong>✔ 권장 모델: XGBoost</strong><p style="margin-top:.5rem;margin-bottom:0">XGB는 개발/외부 코호트 모두에서 가장 안정적인 AUC를 유지하며, 분류 패턴에서도 LR보다 유의하게 우수(McNemar p&lt;0.001).</p></div>
+</div></section>
+<section id="figures"><div class="container fade-in">
+  <h2>그림 (Figures)</h2>
+  <div class="figure-grid">
+    <div class="figure-item"><img src="figures/Figure1_ROC_curves.png" alt="ROC Curves" loading="lazy"><div class="figure-caption"><strong>Figure 1. ROC 곡선</strong>개발 및 외부 검증 코호트에서 세 모델의 ROC 곡선과 AUC.</div></div>
+    <div class="figure-item"><img src="figures/Figure2_Calibration_plots.png" alt="Calibration" loading="lazy"><div class="figure-caption"><strong>Figure 2. Calibration Plot</strong>예측 확률 대 실제 양성률 비교.</div></div>
+    <div class="figure-item"><img src="figures/Figure3_Performance_barplot.png" alt="Performance" loading="lazy"><div class="figure-caption"><strong>Figure 3. 성능 비교</strong>주요 지표별 세 모델 성능 비교.</div></div>
+    <div class="figure-item"><img src="figures/Figure4_Feature_importance.png" alt="Feature Importance" loading="lazy"><div class="figure-caption"><strong>Figure 4. 특성 중요도</strong>RF 및 XGB 상위 20개 미생물 분류군.</div></div>
+    <div class="figure-item"><img src="figures/Figure5_Generalizability.png" alt="Generalizability" loading="lazy"><div class="figure-caption"><strong>Figure 5. 일반화 성능</strong>개발 대비 외부 검증 AUC 변화.</div></div>
+  </div>
+</div></section>
+<section id="stats"><div class="container fade-in">
+  <h2>통계 검정</h2>
+  <div class="stat-row">
+    <div class="stat-item"><div class="test">DeLong: XGB vs LR</div><div class="comparison">개발 코호트</div><div class="pval ns">p = 0.852</div></div>
+    <div class="stat-item"><div class="test">DeLong: XGB vs RF</div><div class="comparison">개발 코호트</div><div class="pval sig">p = 0.006</div></div>
+    <div class="stat-item"><div class="test">McNemar: XGB vs LR</div><div class="comparison">외부 검증 코호트</div><div class="pval sig">p &lt; 0.001</div></div>
+    <div class="stat-item"><div class="test">McNemar: XGB vs RF</div><div class="comparison">외부 검증 코호트</div><div class="pval ns">p = 0.086</div></div>
+  </div>
+</div></section>
+<section id="download"><div class="container fade-in">
+  <h2>자료 다운로드</h2>
+  <div class="dl-grid">
+    <a href="results/final_results.json" class="dl-item" download><span class="dl-icon">📁</span><div class="dl-info"><div class="name">분석 결과 (JSON)</div><div class="type">전체 지표 수치</div></div></a>
+    <a href="results/metrics_dev_test.tsv" class="dl-item" download><span class="dl-icon">📋</span><div class="dl-info"><div class="name">개발 코호트 지표</div><div class="type">TSV · 모델별 성능</div></div></a>
+    <a href="results/metrics_external.tsv" class="dl-item" download><span class="dl-icon">📋</span><div class="dl-info"><div class="name">외부 검증 지표</div><div class="type">TSV · 모델별 성능</div></div></a>
+    <a href="dashboard/results_dashboard.html" class="dl-item"><span class="dl-icon">📊</span><div class="dl-info"><div class="name">인터랙티브 대시보드</div><div class="type">HTML · 오프라인 사용 가능</div></div></a>
+  </div>
+</div></section>
+<footer>
+  <p style="font-size:1rem;color:#fff;margin-bottom:.5rem">마이크로바이옴 기반 대장암 예측 연구</p>
+  <p>Microbiome-Based Colorectal Cancer Prediction — Machine Learning Analysis</p>
+  <div class="footer-links">
+    <a href="https://bioconductor.org/packages/curatedMetagenomicData/" target="_blank">curatedMetagenomicData</a>
+    <a href="dashboard/results_dashboard.html">Results Dashboard</a>
+  </div>
+  <p style="margin-top:1.5rem;font-size:.78rem">데이터 출처: ZellerG_2014 · YachidaS_2019 (curatedMetagenomicData, Bioconductor)</p>
+</footer>
+<script>
+  function switchTab(lang) {
+    document.querySelectorAll('.code-tab').forEach((t,i) => t.classList.toggle('active', ['r','py'][i] === lang));
+    document.getElementById('tab-r').classList.toggle('active', lang === 'r');
+    document.getElementById('tab-py').classList.toggle('active', lang === 'py');
+  }
+  const observer = new IntersectionObserver(entries => entries.forEach(e => e.isIntersecting && e.target.classList.add('visible')), { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body></html>
